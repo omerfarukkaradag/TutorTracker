@@ -33,20 +33,32 @@ def get_all_students():
 def save_lesson(lesson_dict):
     """Save lesson data to Replit Database"""
     key = f"lesson_{lesson_dict['id']}"
-    # Convert datetime and enum to string for storage
+    # Convert datetime and time objects to strings for storage
     lesson_dict['date'] = lesson_dict['date'].isoformat()
-    lesson_dict['time'] = lesson_dict['time'].isoformat()
+    # Store time as HH:MM format
+    lesson_dict['time'] = lesson_dict['time'].strftime("%H:%M:%S") #Store with seconds for better accuracy.
     lesson_dict['payment_status'] = lesson_dict['payment_status'].value
     db[key] = json.dumps(lesson_dict)
+
+def parse_time_string(time_str):
+    """Parse time string to time object, handling both HH:MM and HH:MM:SS formats"""
+    parts = time_str.split(':')
+    if len(parts) == 2:
+        return time(int(parts[0]), int(parts[1]))
+    elif len(parts) == 3:
+        return time(int(parts[0]), int(parts[1]), int(parts[2]))
+    else:
+        raise ValueError("Invalid time string format")
+
 
 def get_lesson(lesson_id):
     """Get lesson data from Replit Database"""
     key = f"lesson_{lesson_id}"
     if key in db:
         lesson_data = json.loads(db[key])
-        # Convert strings back to datetime/enum
+        # Convert strings back to datetime/time objects
         lesson_data['date'] = datetime.fromisoformat(lesson_data['date'])
-        lesson_data['time'] = datetime.fromisoformat(lesson_data['time']).time()
+        lesson_data['time'] = parse_time_string(lesson_data['time'])
         lesson_data['payment_status'] = PaymentStatus(lesson_data['payment_status'])
         return lesson_data
     return None
@@ -58,7 +70,7 @@ def get_all_lessons():
         if key.startswith('lesson_'):
             lesson_data = json.loads(db[key])
             lesson_data['date'] = datetime.fromisoformat(lesson_data['date'])
-            lesson_data['time'] = datetime.fromisoformat(lesson_data['time']).time()
+            lesson_data['time'] = parse_time_string(lesson_data['time'])
             lesson_data['payment_status'] = PaymentStatus(lesson_data['payment_status'])
             lessons.append(lesson_data)
     return lessons
@@ -71,7 +83,7 @@ def get_student_lessons(student_id):
             lesson_data = json.loads(db[key])
             if lesson_data['student_id'] == student_id:
                 lesson_data['date'] = datetime.fromisoformat(lesson_data['date'])
-                lesson_data['time'] = datetime.fromisoformat(lesson_data['time']).time()
+                lesson_data['time'] = parse_time_string(lesson_data['time'])
                 lesson_data['payment_status'] = PaymentStatus(lesson_data['payment_status'])
                 lessons.append(lesson_data)
     return lessons
