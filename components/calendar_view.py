@@ -3,13 +3,7 @@ import pandas as pd
 from datetime import datetime, timedelta
 from streamlit_calendar import calendar
 import json
-
-# Assuming PaymentStatus is defined elsewhere in the project
-class PaymentStatus:
-    PAID = "Paid"
-    PENDING = "Pending"
-    OVERDUE = "Overdue"
-
+from models import PaymentStatus
 
 def render_calendar_view():
     st.header("Ders Takvimi")
@@ -24,16 +18,19 @@ def render_calendar_view():
         start_time = datetime.combine(lesson.date, lesson.time)
         end_time = start_time + timedelta(minutes=lesson.duration)
 
+        # Map payment status to colors
+        status_colors = {
+            PaymentStatus.PAID: '#28a745',
+            PaymentStatus.PENDING: '#ffc107',
+            PaymentStatus.OVERDUE: '#dc3545'
+        }
+
         event = {
             'id': lesson.id,
             'title': f"{student.name} - {lesson.topics}",
             'start': start_time.isoformat(),
             'end': end_time.isoformat(),
-            'backgroundColor': {
-                PaymentStatus.PAID.value: '#28a745',
-                PaymentStatus.PENDING.value: '#ffc107',
-                PaymentStatus.OVERDUE.value: '#dc3545'
-            }[lesson.payment_status.value]
+            'backgroundColor': status_colors[lesson.payment_status]
         }
         events.append(event)
 
