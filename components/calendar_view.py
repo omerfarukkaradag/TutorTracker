@@ -20,9 +20,8 @@ def render_calendar_view():
 
         # Map payment status to colors
         status_colors = {
-            PaymentStatus.PAID: '#28a745',
-            PaymentStatus.PENDING: '#ffc107',
-            PaymentStatus.OVERDUE: '#dc3545'
+            PaymentStatus.PAID: '#28a745',  # Yeşil
+            PaymentStatus.UNPAID: '#dc3545'  # Kırmızı
         }
 
         event = {

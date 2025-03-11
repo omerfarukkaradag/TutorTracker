@@ -1,5 +1,5 @@
 import streamlit as st
-from models import Student
+from models import Student, StudentGrade
 from utils import add_student, get_student_lessons
 
 def render_student_management():
@@ -9,14 +9,18 @@ def render_student_management():
     with st.expander("Yeni Öğrenci Ekle"):
         with st.form("new_student_form"):
             name = st.text_input("İsim")
-            email = st.text_input("E-posta")
             phone = st.text_input("Telefon")
+            grade = st.selectbox(
+                "Sınıf",
+                options=[grade for grade in StudentGrade],
+                format_func=lambda x: x.value
+            )
             notes = st.text_area("Notlar")
 
             submitted = st.form_submit_button("Öğrenci Ekle")
-            if submitted and name and email and phone:
+            if submitted and name and phone:
                 with st.spinner("Öğrenci ekleniyor..."):
-                    add_student(name, email, phone, notes)
+                    add_student(name, phone, grade, notes)
                 st.success("Öğrenci başarıyla eklendi!")
                 st.rerun()
 
@@ -30,8 +34,8 @@ def render_student_management():
         with st.expander(f"📚 {student.name}"):
             col1, col2 = st.columns(2)
             with col1:
-                st.write("**E-posta:**", student.email)
                 st.write("**Telefon:**", student.phone)
+                st.write("**Sınıf:**", student.grade.value)
             with col2:
                 lessons = get_student_lessons(student.id)
                 st.write("**Toplam Ders:**", len(lessons))

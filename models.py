@@ -4,16 +4,22 @@ from typing import List, Optional
 from enum import Enum
 
 class PaymentStatus(Enum):
-    PAID = "Paid"
-    PENDING = "Pending"
-    OVERDUE = "Overdue"
+    PAID = "Ödendi"
+    UNPAID = "Ödenmedi"
+
+class StudentGrade(Enum):
+    NINTH = "9. Sınıf"
+    TENTH = "10. Sınıf"
+    ELEVENTH = "11. Sınıf"
+    TWELFTH = "12. Sınıf"
+    GRADUATE = "Mezun"
 
 @dataclass
 class Student:
     id: str
     name: str
-    email: str
     phone: str
+    grade: StudentGrade
     notes: str = ""
 
 @dataclass

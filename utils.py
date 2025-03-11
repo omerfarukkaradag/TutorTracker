@@ -2,7 +2,7 @@ import streamlit as st
 import uuid
 from datetime import datetime, time
 from typing import List
-from models import Student, Lesson, PaymentStatus
+from models import Student, Lesson, PaymentStatus, StudentGrade
 
 def initialize_session_state():
     if 'students' not in st.session_state:
@@ -10,12 +10,12 @@ def initialize_session_state():
     if 'lessons' not in st.session_state:
         st.session_state.lessons = {}
 
-def add_student(name: str, email: str, phone: str, notes: str) -> Student:
+def add_student(name: str, phone: str, grade: StudentGrade, notes: str) -> Student:
     student = Student(
         id=str(uuid.uuid4()),
         name=name,
-        email=email,
         phone=phone,
+        grade=grade,
         notes=notes
     )
     st.session_state.students[student.id] = student
@@ -50,4 +50,4 @@ def get_student_lessons(student_id: str) -> List[Lesson]:
     ]
 
 def format_time(t: time) -> str:
-    return t.strftime("%I:%M %p")
+    return t.strftime("%H:%M")

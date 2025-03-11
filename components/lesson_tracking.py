@@ -30,12 +30,8 @@ def render_lesson_tracking():
             topics = st.text_area("İşlenen Konular")
             payment_status = st.selectbox(
                 "Ödeme Durumu",
-                options=[status.value for status in PaymentStatus],
-                format_func=lambda x: {
-                    "Paid": "Ödendi",
-                    "Pending": "Beklemede",
-                    "Overdue": "Gecikmiş"
-                }[x]
+                options=[status for status in PaymentStatus],
+                format_func=lambda x: x.value
             )
             notes = st.text_area("Notlar")
 
@@ -48,7 +44,7 @@ def render_lesson_tracking():
                         time=time_input,
                         duration=duration,
                         topics=topics,
-                        payment_status=PaymentStatus(payment_status),
+                        payment_status=payment_status,
                         notes=notes
                     )
                 st.success("Ders başarıyla eklendi!")
@@ -82,17 +78,13 @@ def render_lesson_tracking():
                 # Add payment status editing
                 new_status = st.selectbox(
                     "Ödeme Durumu",
-                    options=[status.value for status in PaymentStatus],
-                    index=[status.value for status in PaymentStatus].index(lesson.payment_status.value),
+                    options=[status for status in PaymentStatus],
+                    index=list(PaymentStatus).index(lesson.payment_status),
                     key=f"payment_status_{lesson.id}",
-                    format_func=lambda x: {
-                        "Paid": "Ödendi",
-                        "Pending": "Beklemede",
-                        "Overdue": "Gecikmiş"
-                    }[x]
+                    format_func=lambda x: x.value
                 )
-                if new_status != lesson.payment_status.value:
-                    st.session_state.lessons[lesson.id].payment_status = PaymentStatus(new_status)
+                if new_status != lesson.payment_status:
+                    st.session_state.lessons[lesson.id].payment_status = new_status
                     st.success("Ödeme durumu güncellendi!")
                     st.rerun()
 

@@ -28,7 +28,3 @@ elif page == "Dersler":
     render_lesson_tracking()
 else:  # Calendar
     render_calendar_view()
-
-# Footer
-st.sidebar.markdown("---")
-st.sidebar.markdown("❤️ ile yapıldı")
