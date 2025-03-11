@@ -45,4 +45,4 @@ def render_student_management():
             if st.button("Öğrenciyi Sil", key=f"del_{student.id}"):
                 delete_student(student.id)
                 st.success("Öğrenci başarıyla silindi!")
-                st.experimental_rerun()  # Force a complete page rerun
+                st.rerun()  # Force a complete page rerun
