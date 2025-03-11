@@ -1,6 +1,6 @@
 import streamlit as st
 from models import Student, StudentGrade
-from utils import add_student, get_student_lessons
+from utils import add_student, get_student_lessons, delete_student
 
 def render_student_management():
     st.header("Öğrenci Yönetimi")
@@ -43,6 +43,6 @@ def render_student_management():
 
             # Delete student button
             if st.button("Öğrenciyi Sil", key=f"del_{student.id}"):
-                del st.session_state.students[student.id]
+                delete_student(student.id)
                 st.success("Öğrenci başarıyla silindi!")
-                st.rerun()
+                st.experimental_rerun()  # Force a complete page rerun

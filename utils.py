@@ -103,11 +103,20 @@ def get_student_lessons(student_id: str) -> List[Lesson]:
     ]
 
 def delete_student(student_id: str):
-    # Veritabanından sil
+    """Delete a student and their associated lessons"""
+    # First delete from database
     db.delete_student(student_id)
-    # Session state'den sil
+
+    # Then clean up session state
     if student_id in st.session_state.students:
         del st.session_state.students[student_id]
+
+    # Remove associated lessons from session state
+    st.session_state.lessons = {
+        lesson_id: lesson 
+        for lesson_id, lesson in st.session_state.lessons.items()
+        if lesson.student_id != student_id
+    }
 
 def delete_lesson(lesson_id: str):
     # Veritabanından sil
