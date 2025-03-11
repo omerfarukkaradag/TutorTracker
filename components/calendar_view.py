@@ -4,8 +4,15 @@ from datetime import datetime, timedelta
 from streamlit_calendar import calendar
 import json
 
+# Assuming PaymentStatus is defined elsewhere in the project
+class PaymentStatus:
+    PAID = "Paid"
+    PENDING = "Pending"
+    OVERDUE = "Overdue"
+
+
 def render_calendar_view():
-    st.header("Calendar View")
+    st.header("Ders Takvimi")
 
     # Prepare calendar events
     events = []
@@ -14,15 +21,18 @@ def render_calendar_view():
         if not student:
             continue
 
+        start_time = datetime.combine(lesson.date, lesson.time)
+        end_time = start_time + timedelta(minutes=lesson.duration)
+
         event = {
-            'title': f"{student.name} - {lesson.topics[:30]}...",
-            'start': datetime.combine(lesson.date, lesson.time).isoformat(),
-            'end': (datetime.combine(lesson.date, lesson.time) + 
-                   timedelta(minutes=lesson.duration)).isoformat(),
+            'id': lesson.id,
+            'title': f"{student.name} - {lesson.topics}",
+            'start': start_time.isoformat(),
+            'end': end_time.isoformat(),
             'backgroundColor': {
-                'Paid': '#28a745',
-                'Pending': '#ffc107',
-                'Overdue': '#dc3545'
+                PaymentStatus.PAID.value: '#28a745',
+                PaymentStatus.PENDING.value: '#ffc107',
+                PaymentStatus.OVERDUE.value: '#dc3545'
             }[lesson.payment_status.value]
         }
         events.append(event)
@@ -37,7 +47,8 @@ def render_calendar_view():
         "initialView": "timeGridWeek",
         "slotMinTime": "06:00:00",
         "slotMaxTime": "22:00:00",
-        "height": 600
+        "height": 600,
+        "locale": "tr"
     }
 
     # Render calendar

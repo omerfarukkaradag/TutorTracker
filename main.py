@@ -6,7 +6,7 @@ from components.calendar_view import render_calendar_view
 
 # Page configuration
 st.set_page_config(
-    page_title="Tutor Management System",
+    page_title="Özel Ders Yönetim Sistemi",
     page_icon="📚",
     layout="wide"
 )
@@ -15,20 +15,20 @@ st.set_page_config(
 initialize_session_state()
 
 # Sidebar navigation
-st.sidebar.title("Tutor Management System")
+st.sidebar.title("Özel Ders Yönetim Sistemi")
 page = st.sidebar.radio(
-    "Navigation",
-    ["Students", "Lessons", "Calendar"]
+    "Menü",
+    ["Öğrenciler", "Dersler", "Takvim"]
 )
 
 # Main content
-if page == "Students":
+if page == "Öğrenciler":
     render_student_management()
-elif page == "Lessons":
+elif page == "Dersler":
     render_lesson_tracking()
 else:  # Calendar
     render_calendar_view()
 
 # Footer
 st.sidebar.markdown("---")
-st.sidebar.markdown("Made with ❤️ by Your Tutor Assistant")
+st.sidebar.markdown("❤️ ile yapıldı")
