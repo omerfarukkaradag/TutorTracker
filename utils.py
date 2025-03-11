@@ -3,7 +3,7 @@ import uuid
 from datetime import datetime, time
 from typing import List
 from models import Student, Lesson, PaymentStatus, StudentGrade
-from database import Session, Student as DBStudent, Lesson as DBLesson
+import database as db
 
 def initialize_session_state():
     if 'students' not in st.session_state:
@@ -15,37 +15,33 @@ def initialize_session_state():
     load_data_from_db()
 
 def load_data_from_db():
-    session = Session()
-    try:
-        # Öğrencileri yükle
-        students = session.query(DBStudent).all()
-        st.session_state.students = {
-            student.id: Student(
-                id=student.id,
-                name=student.name,
-                phone=student.phone,
-                grade=student.grade,
-                notes=student.notes
-            ) for student in students
-        }
+    # Öğrencileri yükle
+    students = db.get_all_students()
+    st.session_state.students = {
+        student['id']: Student(
+            id=student['id'],
+            name=student['name'],
+            phone=student['phone'],
+            grade=student['grade'],
+            notes=student['notes']
+        ) for student in students
+    }
 
-        # Dersleri yükle
-        lessons = session.query(DBLesson).all()
-        st.session_state.lessons = {
-            lesson.id: Lesson(
-                id=lesson.id,
-                student_id=lesson.student_id,
-                date=lesson.date,
-                time=lesson.time,
-                duration=lesson.duration,
-                topics=lesson.topics,
-                payment_status=lesson.payment_status,
-                notes=lesson.notes,
-                attendance=lesson.attendance
-            ) for lesson in lessons
-        }
-    finally:
-        session.close()
+    # Dersleri yükle
+    lessons = db.get_all_lessons()
+    st.session_state.lessons = {
+        lesson['id']: Lesson(
+            id=lesson['id'],
+            student_id=lesson['student_id'],
+            date=lesson['date'],
+            time=lesson['time'],
+            duration=lesson['duration'],
+            topics=lesson['topics'],
+            payment_status=lesson['payment_status'],
+            notes=lesson['notes'],
+            attendance=lesson['attendance']
+        ) for lesson in lessons
+    }
 
 def add_student(name: str, phone: str, grade: StudentGrade, notes: str) -> Student:
     student = Student(
@@ -57,23 +53,10 @@ def add_student(name: str, phone: str, grade: StudentGrade, notes: str) -> Stude
     )
 
     # Veritabanına kaydet
-    session = Session()
-    try:
-        db_student = DBStudent(
-            id=student.id,
-            name=student.name,
-            phone=student.phone,
-            grade=student.grade,
-            notes=student.notes
-        )
-        session.add(db_student)
-        session.commit()
+    db.save_student(student.__dict__)
 
-        # Session state'i güncelle
-        st.session_state.students[student.id] = student
-    finally:
-        session.close()
-
+    # Session state'i güncelle
+    st.session_state.students[student.id] = student
     return student
 
 def add_lesson(
@@ -97,47 +80,41 @@ def add_lesson(
     )
 
     # Veritabanına kaydet
-    session = Session()
-    try:
-        db_lesson = DBLesson(
-            id=lesson.id,
-            student_id=lesson.student_id,
-            date=lesson.date,
-            time=lesson.time,
-            duration=lesson.duration,
-            topics=lesson.topics,
-            payment_status=lesson.payment_status,
-            notes=lesson.notes
-        )
-        session.add(db_lesson)
-        session.commit()
+    db.save_lesson(lesson.__dict__)
 
-        # Session state'i güncelle
-        st.session_state.lessons[lesson.id] = lesson
-    finally:
-        session.close()
-
+    # Session state'i güncelle
+    st.session_state.lessons[lesson.id] = lesson
     return lesson
 
 def get_student_lessons(student_id: str) -> List[Lesson]:
-    session = Session()
-    try:
-        db_lessons = session.query(DBLesson).filter(DBLesson.student_id == student_id).all()
-        return [
-            Lesson(
-                id=lesson.id,
-                student_id=lesson.student_id,
-                date=lesson.date,
-                time=lesson.time,
-                duration=lesson.duration,
-                topics=lesson.topics,
-                payment_status=lesson.payment_status,
-                notes=lesson.notes,
-                attendance=lesson.attendance
-            ) for lesson in db_lessons
-        ]
-    finally:
-        session.close()
+    lessons_data = db.get_student_lessons(student_id)
+    return [
+        Lesson(
+            id=lesson['id'],
+            student_id=lesson['student_id'],
+            date=lesson['date'],
+            time=lesson['time'],
+            duration=lesson['duration'],
+            topics=lesson['topics'],
+            payment_status=lesson['payment_status'],
+            notes=lesson['notes'],
+            attendance=lesson['attendance']
+        ) for lesson in lessons_data
+    ]
+
+def delete_student(student_id: str):
+    # Veritabanından sil
+    db.delete_student(student_id)
+    # Session state'den sil
+    if student_id in st.session_state.students:
+        del st.session_state.students[student_id]
+
+def delete_lesson(lesson_id: str):
+    # Veritabanından sil
+    db.delete_lesson(lesson_id)
+    # Session state'den sil
+    if lesson_id in st.session_state.lessons:
+        del st.session_state.lessons[lesson_id]
 
 def format_time(t: time) -> str:
     return t.strftime("%H:%M")

@@ -1,44 +1,97 @@
-from sqlalchemy import create_engine, Column, String, Integer, DateTime, Time, Boolean, Enum, ForeignKey
-from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import sessionmaker, relationship
-import os
+from replit import db
 from datetime import datetime, time
 from models import PaymentStatus, StudentGrade
+import json
 
-# PostgreSQL veritabanı bağlantısı
-DATABASE_URL = os.getenv("DATABASE_URL")
-if DATABASE_URL.startswith("postgres://"):
-    DATABASE_URL = DATABASE_URL.replace("postgres://", "postgresql://")
+def save_student(student_dict):
+    """Save student data to Replit Database"""
+    key = f"student_{student_dict['id']}"
+    # Convert enum to string for storage
+    student_dict['grade'] = student_dict['grade'].value
+    db[key] = json.dumps(student_dict)
 
-engine = create_engine(DATABASE_URL)
-Base = declarative_base()
-Session = sessionmaker(bind=engine)
+def get_student(student_id):
+    """Get student data from Replit Database"""
+    key = f"student_{student_id}"
+    if key in db:
+        student_data = json.loads(db[key])
+        # Convert string back to enum
+        student_data['grade'] = StudentGrade(student_data['grade'])
+        return student_data
+    return None
 
-class Student(Base):
-    __tablename__ = 'students'
+def get_all_students():
+    """Get all students from Replit Database"""
+    students = []
+    for key in db.keys():
+        if key.startswith('student_'):
+            student_data = json.loads(db[key])
+            student_data['grade'] = StudentGrade(student_data['grade'])
+            students.append(student_data)
+    return students
 
-    id = Column(String, primary_key=True)
-    name = Column(String, nullable=False)
-    phone = Column(String, nullable=False)
-    grade = Column(Enum(StudentGrade), nullable=False)
-    notes = Column(String)
+def save_lesson(lesson_dict):
+    """Save lesson data to Replit Database"""
+    key = f"lesson_{lesson_dict['id']}"
+    # Convert datetime and enum to string for storage
+    lesson_dict['date'] = lesson_dict['date'].isoformat()
+    lesson_dict['time'] = lesson_dict['time'].isoformat()
+    lesson_dict['payment_status'] = lesson_dict['payment_status'].value
+    db[key] = json.dumps(lesson_dict)
 
-    lessons = relationship("Lesson", back_populates="student", cascade="all, delete-orphan")
+def get_lesson(lesson_id):
+    """Get lesson data from Replit Database"""
+    key = f"lesson_{lesson_id}"
+    if key in db:
+        lesson_data = json.loads(db[key])
+        # Convert strings back to datetime/enum
+        lesson_data['date'] = datetime.fromisoformat(lesson_data['date'])
+        lesson_data['time'] = datetime.fromisoformat(lesson_data['time']).time()
+        lesson_data['payment_status'] = PaymentStatus(lesson_data['payment_status'])
+        return lesson_data
+    return None
 
-class Lesson(Base):
-    __tablename__ = 'lessons'
+def get_all_lessons():
+    """Get all lessons from Replit Database"""
+    lessons = []
+    for key in db.keys():
+        if key.startswith('lesson_'):
+            lesson_data = json.loads(db[key])
+            lesson_data['date'] = datetime.fromisoformat(lesson_data['date'])
+            lesson_data['time'] = datetime.fromisoformat(lesson_data['time']).time()
+            lesson_data['payment_status'] = PaymentStatus(lesson_data['payment_status'])
+            lessons.append(lesson_data)
+    return lessons
 
-    id = Column(String, primary_key=True)
-    student_id = Column(String, ForeignKey('students.id'), nullable=False)
-    date = Column(DateTime, nullable=False)
-    time = Column(Time, nullable=False)
-    duration = Column(Integer, nullable=False)
-    topics = Column(String)
-    payment_status = Column(Enum(PaymentStatus), nullable=False, default=PaymentStatus.UNPAID)
-    notes = Column(String)
-    attendance = Column(Boolean, default=False)
+def get_student_lessons(student_id):
+    """Get all lessons for a specific student"""
+    lessons = []
+    for key in db.keys():
+        if key.startswith('lesson_'):
+            lesson_data = json.loads(db[key])
+            if lesson_data['student_id'] == student_id:
+                lesson_data['date'] = datetime.fromisoformat(lesson_data['date'])
+                lesson_data['time'] = datetime.fromisoformat(lesson_data['time']).time()
+                lesson_data['payment_status'] = PaymentStatus(lesson_data['payment_status'])
+                lessons.append(lesson_data)
+    return lessons
 
-    student = relationship("Student", back_populates="lessons")
+def delete_student(student_id):
+    """Delete student and their lessons"""
+    # Delete student
+    key = f"student_{student_id}"
+    if key in db:
+        del db[key]
 
-# Veritabanı tablolarını oluştur
-Base.metadata.create_all(engine)
+    # Delete associated lessons
+    for key in db.keys():
+        if key.startswith('lesson_'):
+            lesson_data = json.loads(db[key])
+            if lesson_data['student_id'] == student_id:
+                del db[key]
+
+def delete_lesson(lesson_id):
+    """Delete a lesson"""
+    key = f"lesson_{lesson_id}"
+    if key in db:
+        del db[key]

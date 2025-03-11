@@ -8,4 +8,8 @@ dependencies = [
     "streamlit>=1.43.2",
     "sqlalchemy>=2.0.39",
     "psycopg2-binary>=2.9.10",
+    "google-auth-oauthlib>=1.2.1",
+    "google-cloud-firestore>=2.20.1",
+    "google-auth>=2.38.0",
+    "replit>=4.1.1",
 ]
