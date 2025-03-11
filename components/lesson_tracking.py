@@ -27,16 +27,16 @@ def render_lesson_tracking():
                 time_input = st.time_input("Saat")
 
             duration = st.number_input("Süre (dakika)", min_value=15, value=60, step=15)
-            topics = st.text_area("İşlenen Konular")
+            topics = st.text_area("İşlenen Konular (opsiyonel)")
             payment_status = st.selectbox(
                 "Ödeme Durumu",
                 options=[status for status in PaymentStatus],
                 format_func=lambda x: x.value
             )
-            notes = st.text_area("Notlar")
+            notes = st.text_area("Notlar (opsiyonel)")
 
             submitted = st.form_submit_button("Ders Ekle")
-            if submitted and student_id and topics:
+            if submitted and student_id:
                 with st.spinner("Ders ekleniyor..."):
                     add_lesson(
                         student_id=student_id,
@@ -73,7 +73,18 @@ def render_lesson_tracking():
             col1, col2 = st.columns(2)
             with col1:
                 st.write("**Süre:**", f"{lesson.duration} dakika")
-                st.write("**Konular:**", lesson.topics)
+
+                # Add topics editing
+                new_topics = st.text_area(
+                    "İşlenen Konular",
+                    value=lesson.topics,
+                    key=f"topics_{lesson.id}"
+                )
+                if new_topics != lesson.topics:
+                    st.session_state.lessons[lesson.id].topics = new_topics
+                    st.success("Konular güncellendi!")
+                    st.rerun()
+
             with col2:
                 # Add payment status editing
                 new_status = st.selectbox(
@@ -88,7 +99,16 @@ def render_lesson_tracking():
                     st.success("Ödeme durumu güncellendi!")
                     st.rerun()
 
-                st.write("**Notlar:**", lesson.notes)
+                # Add notes editing
+                new_notes = st.text_area(
+                    "Notlar",
+                    value=lesson.notes,
+                    key=f"notes_{lesson.id}"
+                )
+                if new_notes != lesson.notes:
+                    st.session_state.lessons[lesson.id].notes = new_notes
+                    st.success("Notlar güncellendi!")
+                    st.rerun()
 
             # Delete lesson button
             if st.button("Dersi Sil", key=f"del_lesson_{lesson.id}"):

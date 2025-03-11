@@ -26,9 +26,9 @@ def add_lesson(
     date: datetime,
     time: time,
     duration: int,
-    topics: str,
-    payment_status: PaymentStatus,
-    notes: str
+    topics: str = "",
+    payment_status: PaymentStatus = PaymentStatus.UNPAID,
+    notes: str = ""
 ) -> Lesson:
     lesson = Lesson(
         id=str(uuid.uuid4()),
